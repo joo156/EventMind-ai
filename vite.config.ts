@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import { nitro } from "nitro/vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
@@ -11,6 +12,8 @@ export default defineConfig({
       // Point to our custom SSR error-wrapper entry
       server: { entry: "src/server.ts" },
     }),
+    // Nitro — generates Vercel-compatible output for SSR deployment
+    nitro(),
     // React Refresh (required for dev mode by tanstackStart)
     react({
       babel: {
