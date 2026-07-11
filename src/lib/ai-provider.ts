@@ -25,6 +25,13 @@ export interface AIResponse {
   };
 }
 
+function getEnv(key: string): string | undefined {
+  if (typeof process !== "undefined" && process.env) {
+    return process.env[key];
+  }
+  return undefined;
+}
+
 class AIProviderService {
   private provider: AIProvider;
   private apiKey: string;
@@ -32,19 +39,19 @@ class AIProviderService {
 
   constructor() {
     this.provider = (
-      process.env.VITE_AI_PROVIDER ||
-      process.env.AI_PROVIDER ||
+      getEnv("VITE_AI_PROVIDER") ||
+      getEnv("AI_PROVIDER") ||
       "gemini"
     ) as AIProvider;
     // Server functions run in Node/Edge — VITE_ vars may not be injected.
     // Fall back to un-prefixed AI_API_KEY so both work.
     this.apiKey =
-      process.env.VITE_AI_API_KEY ||
-      process.env.AI_API_KEY ||
+      getEnv("VITE_AI_API_KEY") ||
+      getEnv("AI_API_KEY") ||
       "";
     this.model =
-      process.env.VITE_AI_MODEL ||
-      process.env.AI_MODEL ||
+      getEnv("VITE_AI_MODEL") ||
+      getEnv("AI_MODEL") ||
       this.getDefaultModel();
 
     if (!this.apiKey) {
@@ -55,7 +62,7 @@ class AIProviderService {
   }
 
   private getDefaultModel(): string {
-    const envModel = process.env.VITE_AI_MODEL || process.env.AI_MODEL;
+    const envModel = getEnv("VITE_AI_MODEL") || getEnv("AI_MODEL");
     if (envModel) return envModel;
 
     switch (this.provider) {
@@ -295,7 +302,7 @@ let lastApiKey = "";
 
 export function getAIService(): AIProviderService {
   const currentKey =
-    process.env.VITE_AI_API_KEY || process.env.AI_API_KEY || "";
+    getEnv("VITE_AI_API_KEY") || getEnv("AI_API_KEY") || "";
   if (!aiService || currentKey !== lastApiKey) {
     aiService = new AIProviderService();
     lastApiKey = currentKey;
