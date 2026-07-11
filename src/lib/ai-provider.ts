@@ -97,59 +97,90 @@ class AIProviderService {
   private async callGemini(options: AIRequestOptions): Promise<AIResponse> {
     const { systemPrompt, userMessage, responseFormat } = options;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
+    // Default fallback models in priority order
+    const defaultModels = [
+      "gemini-3.5-flash",
+      "gemini-2.5-flash",
+      "gemini-3.1-flash-lite",
+      "gemini-2.5-flash-lite"
+    ];
 
-    const requestBody = {
-      systemInstruction: {
-        parts: { text: systemPrompt },
-      },
-      contents: [
-        {
-          parts: [{ text: userMessage }],
-        },
-      ],
-      generationConfig: {
-        temperature: options.temperature ?? 1.0,
-        responseMimeType: responseFormat === "json_object" ? "application/json" : "text/plain",
-      },
-    };
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      if (response.status === 429) {
-        throw new Error(`Rate limited (429) — please try again in a moment. Details: ${error.slice(0, 500)}`);
-      }
-      if (response.status === 403) {
-        throw new Error(`Invalid API key (403) for Google Gemini. Details: ${error.slice(0, 500)}`);
-      }
-      throw new Error(`Gemini API error (${response.status}): ${error.slice(0, 500)}`);
+    // Determine fallback order
+    let modelsToTry = [...defaultModels];
+    const envModel = getEnv("VITE_AI_MODEL") || getEnv("AI_MODEL");
+    if (envModel) {
+      modelsToTry = [envModel, ...defaultModels.filter((m) => m !== envModel)];
     }
 
-    const data = (await response.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text: string }> } }>;
-      usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
-    };
+    let lastError: Error | null = null;
 
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    const usage = data.usageMetadata
-      ? {
-          promptTokens: data.usageMetadata.promptTokenCount ?? 0,
-          completionTokens: data.usageMetadata.candidatesTokenCount ?? 0,
-          totalTokens:
-            (data.usageMetadata.promptTokenCount ?? 0) +
-            (data.usageMetadata.candidatesTokenCount ?? 0),
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`[Gemini] Attempting call with model: ${modelName}`);
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${this.apiKey}`;
+
+        const requestBody = {
+          systemInstruction: {
+            parts: { text: systemPrompt },
+          },
+          contents: [
+            {
+              parts: [{ text: userMessage }],
+            },
+          ],
+          generationConfig: {
+            temperature: options.temperature ?? 1.0,
+            responseMimeType: responseFormat === "json_object" ? "application/json" : "text/plain",
+          },
+        };
+
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          let statusText = `Gemini API error (${response.status}) using model ${modelName}`;
+          if (response.status === 429) {
+            statusText = `Rate limited / Quota exceeded (429) for model ${modelName}`;
+          } else if (response.status === 403) {
+            statusText = `Forbidden (403) for model ${modelName}`;
+          } else if (response.status === 404) {
+            statusText = `Model not found (404) for model ${modelName}`;
+          }
+          throw new Error(`${statusText}. Details: ${errorText.slice(0, 300)}`);
         }
-      : undefined;
 
-    return { content, usage };
+        const data = (await response.json()) as {
+          candidates?: Array<{ content?: { parts?: Array<{ text: string }> } }>;
+          usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
+        };
+
+        const content = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+        const usage = data.usageMetadata
+          ? {
+              promptTokens: data.usageMetadata.promptTokenCount ?? 0,
+              completionTokens: data.usageMetadata.candidatesTokenCount ?? 0,
+              totalTokens:
+                (data.usageMetadata.promptTokenCount ?? 0) +
+                (data.usageMetadata.candidatesTokenCount ?? 0),
+            }
+          : undefined;
+
+        console.log(`[Gemini] Successfully generated content using model: ${modelName}`);
+        return { content, usage };
+      } catch (err: any) {
+        console.warn(`[Gemini] Call failed for model ${modelName}:`, err.message || err);
+        lastError = err;
+        // Continue loop to try the next model...
+      }
+    }
+
+    throw lastError || new Error("All Gemini models failed to respond.");
   }
 
   private async callOpenAI(options: AIRequestOptions): Promise<AIResponse> {
