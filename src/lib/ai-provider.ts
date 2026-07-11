@@ -67,7 +67,7 @@ class AIProviderService {
 
     switch (this.provider) {
       case "gemini":
-        return "gemini-2.0-flash-lite";
+        return "gemini-3.1-flash-lite";
       case "openai":
         return "gpt-4-turbo";
       case "anthropic":
