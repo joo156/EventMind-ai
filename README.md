@@ -1,194 +1,148 @@
 # EventMind AI
 
-**Turn anything into a calendar event.** Paste text, drop an image, upload a PDF, or share an email — EventMind extracts the event details with AI and exports a perfect entry to Apple, Google, or Outlook Calendar.
+> **The ultimate AI-powered calendar assistant.** Transform raw text, screenshots, meeting transcripts, emails, or PDFs into perfectly formatted calendar events in seconds.
 
-Live preview: run `npm run dev` and open http://localhost:8080
+[![Live Demo](https://img.shields.io/badge/Demo-Live-brightgreen?style=for-the-badge)](https://event-mind-ai-joo.vercel.app/)
+[![React](https://img.shields.io/badge/React-19-blue?style=for-the-badge)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4-38bdf8?style=for-the-badge)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Database-3ecf8e?style=for-the-badge)](https://supabase.com/)
+[![Vercel](https://img.shields.io/badge/Vercel-Deployment-black?style=for-the-badge)](https://vercel.com/)
+
+EventMind AI bridges the gap between unstructured schedules (emails, timetables, message threads, screenshots) and your calendar. It leverages state-of-the-art Generative AI to extract dates, times, descriptions, and locations, checks for conflicts, and lets you export directly to your preferred calendar provider.
+
+🔗 **Try it live:** [https://event-mind-ai-joo.vercel.app/](https://event-mind-ai-joo.vercel.app/)
 
 ---
 
-## ✨ Features
+## 🚀 Key Features
 
-- **Universal input** — plain text, images (OCR via vision), PDFs, emails, URLs
-- **AI extraction** — single or multi-event, powered by your choice of AI provider (Google Gemini, OpenAI, Anthropic, OpenRouter)
-- **Smart review** — duplicate + conflict detection before you save
-- **Dashboard** — history, search, favorites, usage stats
-- **Natural-language editing** — "move this to Friday at 3pm" via chat assistant
-- **Calendar export** — `.ics` download + Google/Outlook one-click URLs
-- **Auth** — email/password (auto-confirmed) and Google OAuth
-- **Roles** — `admin` (single fixed account), `pro` (unlimited), `user` (20 free extractions)
-- **Pro requests** — free users open a pre-filled mailto to the admin; admin can grant/revoke Pro by email from the dashboard
-- **PWA** — installable on iOS/Android with browser notifications for upcoming events
-- **Responsive** — phone, tablet, desktop
+*   **🤖 Smart AI Extraction**
+    *   Extracts single or multiple events simultaneously (ideal for itineraries, flight confirmations, or exam schedules).
+    *   Intelligent date inference (handles missing years, relative days like "next Friday", and platform links).
+    *   Automatically categorizes events and suggests logical reminder times (e.g., flights get 24-hour reminders, meetings get 30-minute reminders).
+*   **💬 Interactive Natural Language Refinement**
+    *   Refine extracted events dynamically using a chat assistant (e.g., *"Move the meeting to next Tuesday at 3 PM and set the location to Zoom"*).
+*   **📅 Seamless Sync & Export**
+    *   One-click links to pre-fill **Google Calendar**, **Outlook Calendar**, and **Yahoo Calendar**.
+    *   Instantly generate and download **universal `.ics` files** for Apple Calendar, Windows Mail, and offline clients.
+*   **🛡️ Conflict & Duplicate Detection**
+    *   Queries your existing schedules to check for time overlaps or duplicate events before saving.
+*   **👥 Role-Based Access Control**
+    *   **Admin Panel:** Grant or revoke Pro access by user email, check total extractions, and manage global system stats.
+    *   **Pro Users:** Unlimited AI extractions.
+    *   **Free Users:** 20 AI extractions per month (with pre-filled request forms for Pro access).
+*   **📱 Native Progressive Web App (PWA)**
+    *   Fully installable on iOS, Android, and desktop.
+    *   Supports offline operation capabilities and schedules client-side reminders.
 
-## 🧱 Tech Stack
+---
 
-- **Framework:** TanStack Start v1 (React 19 + Vite 8, SSR on Vercel)
-- **Routing/Data:** TanStack Router + TanStack Query
-- **UI:** Tailwind CSS v4, shadcn/ui, Lucide icons, Sora + Inter fonts
-- **Backend:** Supabase (Postgres, Auth, RLS)
-- **AI:** Provider abstraction layer (default: Google Gemini, supports OpenAI, Anthropic, OpenRouter)
-- **Package manager:** Bun (fallback: npm)
+## 🛠️ Tech Stack & Architecture
 
-## 📁 Project Layout
+### Frontend & Routing
+*   **Framework:** [TanStack Start](https://tanstack.com/router/v1/docs/start/overview) (React 19 + Vite 8, featuring server-side rendering (SSR) and server functions).
+*   **Routing:** TanStack Router (fully type-safe, file-based routing).
+*   **Styling:** Tailwind CSS v4 with custom `oklch` color systems, smooth transitions, and premium dark/light themes.
+*   **Components:** Custom components built on Radix UI primitives.
+
+### Backend & Integrations
+*   **Database:** Supabase PostgreSQL with robust Row-Level Security (RLS) policies.
+*   **Auth:** Supabase Auth supporting Email/Password (auto-confirm optional) and Google OAuth login.
+*   **Server Engine:** Nitro (powers the compiled build and hooks directly into Vercel Serverless Functions).
+*   **AI Engine:** Direct API integration with `gemini-3.5-flash` via structured JSON outputs.
+
+---
+
+## 📁 Repository Structure
 
 ```
-src/
-├── routes/                    # File-based routing
-│   ├── __root.tsx             # Root shell (head, PWA meta, providers)
-│   ├── index.tsx              # Landing + universal extractor
-│   ├── auth.tsx               # Sign in / sign up
-│   ├── _authenticated/        # Protected subtree
-│   │   ├── route.tsx          # Auth gate
-│   │   └── dashboard.tsx      # History, Pro request, admin panel, PWA install
-│   └── sitemap[.]xml.ts
-├── lib/
-│   ├── ai-provider.ts         # Provider abstraction (Gemini, OpenAI, Anthropic, OpenRouter)
-│   ├── extract.functions.ts   # AI extraction (server fn)
-│   ├── events.functions.ts    # Event CRUD + quota
-│   ├── chat.functions.ts      # Natural-language edit
-│   ├── pro.functions.ts       # Pro requests + admin grant
-│   ├── calendar.ts            # .ics + Google/Outlook URL builders
-│   ├── pwa.ts                 # Install prompt + notifications
-│   └── auth.ts
-├── components/                # AppHeader, EventCard, EventChatDialog, ui/*
-├── integrations/supabase/     # Auto-generated clients (do NOT edit)
-└── styles.css                 # Design tokens (oklch), animations
-public/                        # PWA icons, manifest, robots.txt
-supabase/                      # Migrations + config
+├── public/                    # PWA icons, webmanifest, robots.txt
+├── src/
+│   ├── routes/                # File-based routing (TanStack Router)
+│   │   ├── __root.tsx         # HTML shell, PWA setup, globally loaded assets
+│   │   ├── index.tsx          # Landing page & core universal extractor
+│   │   ├── auth.tsx           # Email sign-in/up and Google OAuth handler
+│   │   └── _authenticated/    # Protected route sub-tree
+│   │       ├── route.tsx      # Authentication gate middleware
+│   │       └── dashboard.tsx  # Event history, profile, and Admin Control Panel
+│   ├── components/            # Reusable UI parts & custom Shadcn primitives
+│   ├── integrations/supabase/ # Generated types and clients (auth & DB queries)
+│   ├── lib/
+│   │   ├── ai-provider.ts     # Safe, client-guarded AI API client wrapper
+│   │   ├── calendar.ts        # Direct-link generators (.ics file builder)
+│   │   ├── extract.functions.ts # AI parsing server functions
+│   │   └── pro.functions.ts   # Admin tools (bypasses RLS using service keys)
+│   └── styles.css             # Design tokens, themes, animations
+├── supabase/                  # Local config and database migrations
+├── vercel.json                # Vercel deployment configuration
+└── vite.config.ts             # Vite/Nitro configuration
 ```
 
-## 🚀 Local Setup
+---
 
-### Prerequisites
+## 🚀 Local Development Setup
 
-- **Node.js** ≥ 20 (or **Bun** ≥ 1.1)
-- **Supabase** account (free tier is fine) — [see full setup guide](./SUPABASE_MIGRATION.md)
-- **AI API key** from your chosen provider:
-  - **Google Gemini** — https://ai.google.dev/
-  - **OpenAI** — https://platform.openai.com/api-keys
-  - **Anthropic** — https://console.anthropic.com/
-  - **OpenRouter** — https://openrouter.ai/keys
+Follow these steps to run the project locally on your machine:
 
-### 1. Clone & Install
+### 1. Prerequisites
+*   Node.js ≥ 20 (or Bun ≥ 1.1)
+*   A free [Supabase](https://supabase.com) account
+*   A free [Google AI Studio API Key](https://aistudio.google.com/)
 
+### 2. Clone the Repository
 ```bash
-git clone <your-repo-url> eventmind
-cd eventmind
-npm install  # or: bun install
+git clone https://github.com/joo156/EventMind-ai.git
+cd EventMind-ai
+npm install
 ```
 
-### 2. Set up Supabase
-
-See [SUPABASE_MIGRATION.md](./SUPABASE_MIGRATION.md) for full instructions. You'll need:
-
-1. Create a Supabase project
-2. Get your API keys
-3. Apply database migrations
-4. (Optional) Set up Google OAuth
-
-### 3. Environment variables
-
-Create `.env.local` in the project root (copy from `.env.example`):
-
+### 3. Setup Environment Variables
+Create a `.env.local` file in the root of the project (copy from `.env.example`):
 ```env
-# AI Provider (choose: gemini, openai, anthropic, openrouter)
+# AI API Key (Gemini)
 VITE_AI_PROVIDER=gemini
-VITE_AI_API_KEY=your_api_key_here
+VITE_AI_API_KEY=YOUR_GEMINI_API_KEY_HERE
 
-# Supabase (from your project → Settings → API)
-VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+# Supabase Credentials (from Settings -> API)
+VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your_anon_key_here
+
+# Server-side Keys
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 ```
 
-**Important:** Never commit `.env.local` to git — it contains sensitive credentials.
-
-### 4. Run
-
+### 4. Apply Database Schema
+Apply the SQL migration scripts located in the `supabase/migrations/` directory directly into your Supabase SQL Editor, or use the Supabase CLI:
 ```bash
-npm run dev        # http://localhost:8080 with auto-reload
-npm run build      # Production build
-npm run preview    # Preview production build locally
+npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase db push
 ```
 
-## 👤 Roles
-
-| Role  | How it's granted                                | Quota          |
-| ----- | ----------------------------------------------- | -------------- |
-| admin | Fixed to `y2005azab@gmail.com` (via DB trigger) | Unlimited      |
-| pro   | Granted by admin in the dashboard (by email)    | Unlimited      |
-| user  | Default on signup                               | 20 extractions |
-| anon  | No account                                      | 2 extractions  |
-
-## 📱 PWA + Notifications
-
-- Manifest at `public/manifest.webmanifest`, icons in `public/`.
-- Dashboard shows an **Install** button (Chrome/Edge/Android) or instructions (iOS Safari → Share → Add to Home Screen).
-- After install, users can enable browser notifications; reminders are scheduled client-side before each saved event.
-- iOS: web push works only when the app is installed to the Home Screen (iOS 16.4+).
-
-## 🔧 Configuration
-
-### Switching AI Providers
-
-Change `VITE_AI_PROVIDER` and `VITE_AI_API_KEY` in `.env.local`:
-
-```env
-# Google Gemini (default, free tier available)
-VITE_AI_PROVIDER=gemini
-VITE_AI_API_KEY=your_gemini_key
-
-# OpenAI (GPT-4)
-VITE_AI_PROVIDER=openai
-VITE_AI_API_KEY=sk_...
-
-# Anthropic Claude
-VITE_AI_PROVIDER=anthropic
-VITE_AI_API_KEY=sk-ant-...
-
-# OpenRouter (multiple providers)
-VITE_AI_PROVIDER=openrouter
-VITE_AI_API_KEY=sk-or-...
+### 5. Start the Application
+```bash
+npm run dev
 ```
-
-Restart dev server for changes to take effect.
-
-### Admin Email
-
-The admin role is hard-coded to `y2005azab@gmail.com` in the database trigger. To change it:
-
-1. `supabase/migrations/*_handle_new_user*.sql` (update the trigger)
-2. `src/routes/_authenticated/dashboard.tsx` (update `ADMIN_EMAIL` constant)
-
-### Email Confirmation
-
-By default, emails are auto-confirmed (fine for prototyping). For production:
-
-1. In Supabase → Authentication → Providers → Email
-2. Turn on **Confirm email**
-3. Wire up a real email provider (Resend, SendGrid, etc.)
+Open **[http://localhost:8080](http://localhost:8080)** in your browser.
 
 ---
 
-## 📝 Notes for Developers
+## 🌐 Production Deployment
 
-1. **Auto-generated files** (`src/integrations/supabase/*`, `src/routeTree.gen.ts`) should not be manually edited. They'll be regenerated on route/schema changes.
+This project is optimized to run as a serverless application on **Vercel**:
 
-2. **Environment variables prefixed with `VITE_`** are exposed to the client (keep API keys in non-VITE variables on the server).
+1.  Connect your GitHub account to **Vercel**.
+2.  Import your **`EventMind-ai`** repository.
+3.  Set the **Framework Preset** to **`TanStack Start`**.
+4.  Add all variables from your local `.env.local` file under **Environment Variables**.
+5.  Click **Deploy**.
+6.  Update your **Redirect URLs** in your Supabase Auth settings to match your Vercel domain (`https://your-app.vercel.app/auth`).
 
-3. **Server functions** (marked with `createServerFn`) run on Vercel and cannot use Node-only APIs (`fs.watch`, `child_process`, `sharp`, native bindings).
-
-4. **TanStack Start routing** requires files in `src/routes/`. Do not create `src/pages/` or use Next.js patterns.
-
-5. **PWA icons** live in `public/` with absolute paths (`/icon-192.png`). Don't move them to `src/assets/`.
-
-6. **Fonts** load from Google Fonts via `<link>` in `src/routes/__root.tsx`.
-
-7. **Pro requests** open the user's mail client (no server-side email). Add Resend/SendGrid for real transactional email.
-
-8. **Web Push on iOS** requires the app to be installed to the Home Screen (iOS 16.4+). Otherwise, reminders use `setTimeout` and only work when the tab is open.
+---
 
 ## 📜 License
 
-This project is a fully independent, production-ready repository. See [SUPABASE_MIGRATION.md](./SUPABASE_MIGRATION.md) for setup instructions.
+This project is a fully independent, production-ready repository.
 
-MIT — do whatever you want, no warranty.
+Distributed under the MIT License. See `LICENSE` for more information.
